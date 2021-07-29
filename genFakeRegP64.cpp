@@ -77,14 +77,19 @@ vector<__uint8_t> obtainRegistryData(){
     std::cout<<"  Input Registry Data. After inputting, push Ctrl+D."<<std::endl;
     string input_line;
     vector<__uint8_t> registryData={};
-    string input_lines="";
-    while(std::cin>>input_line){
+    std::ostringstream oss;
+    while(std::getline(std::cin, input_line)){
         if(std::cin.eof()) break;
-        input_lines+=input_line;
+        if (input_line.find("\"user\"=hex:")!=sring::npos){
+            oss.str();
+        }
+        for (auto s: input_line){
+            if (s!="\r" && s!= "\n"){
+                oss<<s;
+            }
+        }
     }
-    const string input_data_tmp=std::regex_replace(input_lines, std::regex("\r\n|\r|\n"), "");
-    const string input_data=std::regex_replace(input_data_tmp, std::regex("^.*\"user\"=hex:"), "");
-    const string data_numbers=std::regex_replace(input_data, std::regex("[^(a-fA-F0-9)]*([a-fA-F0-9]+)[,\\\\s ]*"), "$1,");
+    const string data_numbers=std::regex_replace(oss.str(), std::regex("[^(a-fA-F0-9)]*([a-fA-F0-9]+)[,\\\\s ]*"), "$1,");
     string res_data=data_numbers;
     while(true){
         const size_t com_place=res_data.find(",");
@@ -128,6 +133,18 @@ int printInfo(SupportInfo Info){
     return 0;
 }
 
+// ##----------tmp--------------
+
+int tmp(){
+    string in_str;
+    std::cout<<1<<std::endl;
+    std::cin.ignore(INT_MAX, *"\n");
+    while (std::getline(std::cin, in_str, )){
+        std::cout<<in_str.length()<<std::endl;
+    }
+    std::cout<<2<<std::endl;
+}
+
 // ##---------uncompress-----------
 
 int uncomp(){
@@ -163,7 +180,7 @@ int comp(){
 
     time_t now = time(NULL);
     uint32_t run_count_tmp = static_cast<uint32_t>((int32_t)-10000);
-    std::cout<<"  Which is your input content?: (1-2)\n"<<\
+    std::cout<<"  Which is your input content?: (1-2, default: 1)\n"<<\
     "\t  1. Machine ID\n\t  2. Registry Data"<<std::endl;
 
     const std::map<string, vector<string>> input_map={
@@ -185,7 +202,7 @@ int comp(){
         if (strcmp(Info.MachineID, "")==0) return -1;
         MachineID_value=Info.MachineID;
     }
-    std::cout<<"  Will you use the default values for a fake registry data? (y/n)\n"<<\
+    std::cout<<"  Will you use the default values for a fake registry data? (y/n, default: y)\n"<<\
     "\t  Code, Name, Email, RunCount"<<std::endl;
     const std::map<string, vector<string>> input_map_yn={
         {"yes", {"y", "Y","yes", "Yes", "YES"}},
@@ -237,7 +254,7 @@ int comp(){
         count+=1;
         oss<<(int(out)^0xAA);
     }
-    string RegistryFileContent=oss.str();
+    const string RegistryFileContent=oss.str();
     std::cout<<"-------------------\n"<<\
     "  The following is a new registry file content.\n"<<\
     "  Make new text file(`*.reg`) with it and import the file to the Registry Editor.\n"<<\
@@ -256,12 +273,15 @@ int main(){
     "\t  2. Uncompress the registry data for Project 64 and obtain the saved information\n";
     const std::map<string, vector<string>> input_map={
         {"comp",{"1"}},
-        {"uncomp",{"2"}}};
+        {"uncomp",{"2"}},
+        {"tmp", {"3"}}};
     const string selection=obtainInput(input_map);
     if (selection=="comp"){
         comp();
     } else if (selection=="uncomp"){
         uncomp();
+    } else if (selection=="tmp"){
+        tmp();
     } 
 
     return 0;

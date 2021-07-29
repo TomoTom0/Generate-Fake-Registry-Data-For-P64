@@ -29,6 +29,18 @@ typedef struct
 
 // ##---------obtain-----------
 
+string checkInput(string defaultVal=""){
+    string inputVal;
+    //std::cin.ignore(INT_MAX, *"\n");
+    std::getline(std::cin, inputVal);
+    if (inputVal.length()==0) {
+        if (defaultVal.length()>0) std::cout<<"default value: "<<defaultVal<<std::endl;
+        return defaultVal;
+    }
+    else return inputVal;
+
+}
+
 std::tuple<SupportInfo, string> obtainInfo(vector<__uint8_t> InData){
     vector<__uint8_t> OutData;
     OutData.resize(sizeof(SupportInfo)+100);
@@ -50,7 +62,7 @@ std::tuple<SupportInfo, string> obtainInfo(vector<__uint8_t> InData){
     return std::forward_as_tuple(* Info_star, hash_saved);
 }
 
-string obtainInput(const std::map<string, vector<string>>& input_map, const string& defaultInput=""){
+string obtainInput(const std::map<string, vector<string>>& input_map, const string& defaultVal=""){
     std::map<string, string> input_map_forFind;
 
     for (const auto& [key, vec] : input_map){
@@ -60,12 +72,8 @@ string obtainInput(const std::map<string, vector<string>>& input_map, const stri
     }
     string inputVal;
     while(true){
-        std::cin>>inputVal;
-        if (inputVal.length()==0 && input_map_forFind.count(defaultInput)!=0){
-            inputVal=defaultInput;
-            break;
-        }
-        else if (input_map_forFind.count(inputVal)!=0) break;
+        inputVal=checkInput(defaultVal);
+        if (input_map_forFind.count(inputVal)!=0) break;
         else {
             std::cout<<"Invalid content. Please input again."<<std::endl;
         }
@@ -80,11 +88,11 @@ vector<__uint8_t> obtainRegistryData(){
     std::ostringstream oss;
     while(std::getline(std::cin, input_line)){
         if(std::cin.eof()) break;
-        if (input_line.find("\"user\"=hex:")!=sring::npos){
+        if (input_line.find("\"user\"=hex:")!=string::npos){
             oss.str();
         }
-        for (auto s: input_line){
-            if (s!="\r" && s!= "\n"){
+        for (const auto s: input_line){
+            if (s!= * "\r" && s!= *"\n"){
                 oss<<s;
             }
         }
@@ -139,7 +147,7 @@ int tmp(){
     string in_str;
     std::cout<<1<<std::endl;
     std::cin.ignore(INT_MAX, *"\n");
-    while (std::getline(std::cin, in_str, )){
+    while (std::getline(std::cin, in_str)){
         std::cout<<in_str.length()<<std::endl;
     }
     std::cout<<2<<std::endl;
@@ -176,10 +184,12 @@ int uncomp(){
 
 // ##---------compress-----------
 
+
+
 int comp(){
 
-    time_t now = time(NULL);
-    uint32_t run_count_tmp = static_cast<uint32_t>((int32_t)-10000);
+    const time_t now = time(NULL);
+    const uint32_t run_count_init = static_cast<uint32_t>((int32_t)-10000);
     std::cout<<"  Which is your input content?: (1-2, default: 1)\n"<<\
     "\t  1. Machine ID\n\t  2. Registry Data"<<std::endl;
 
@@ -191,10 +201,9 @@ int comp(){
     const bool isMachineID= selection == "MachineID";
     string MachineID_value;
     if (isMachineID){
-        string inputVal;
         std::cout<<"  Input MachineID"<<std::endl;
-        std::cin>>inputVal;
-        MachineID_value=std::regex_replace(inputVal, std::regex(".*[^(a-fA-F0-9)]*([a-fA-F0-9]{32})[^(a-fA-F0-9)]*.*$"), "$1");
+        string inputVal=checkInput("AAAAAAAAAAAAAAAAAAAAAAAAA");
+        MachineID_value=std::regex_replace(inputVal, std::regex("^.*[^(a-fA-F0-9)]*([a-fA-F0-9]{32})[^(a-fA-F0-9)]*.*$"), "$1");
     } else {
         vector<__uint8_t> registryData=obtainRegistryData();
         SupportInfo Info;
@@ -202,16 +211,37 @@ int comp(){
         if (strcmp(Info.MachineID, "")==0) return -1;
         MachineID_value=Info.MachineID;
     }
-    std::cout<<"  Will you use the default values for a fake registry data? (y/n, default: y)\n"<<\
+    std::cout<<"  Will you change the values for a fake registry data? (y/n, default: n)\n"<<\
     "\t  Code, Name, Email, RunCount"<<std::endl;
+
+    SupportInfo m_SupportInfo={"code", "email", "name", "id", run_count_init, now, now, true};
+    strcpy(m_SupportInfo.MachineID, MachineID_value.c_str());
     const std::map<string, vector<string>> input_map_yn={
         {"yes", {"y", "Y","yes", "Yes", "YES"}},
         {"no", {"n", "N", "no", "No", "NO"}}
     };
-    const string selection_yn = obtainInput(input_map_yn, "y");
+    const string selection_yn = obtainInput(input_map_yn, "n");
 
-    SupportInfo m_SupportInfo={"code", "email", "name", "id", run_count_tmp, now, now, true};
-    strcpy(m_SupportInfo.MachineID, MachineID_value.c_str());
+    if (selection_yn=="yes"){
+        std::cout<<"  1/4, Code: the code as the evidence of donating (not important, default: code)"<<std::endl;
+        strcpy(m_SupportInfo.Code, checkInput("code").c_str());
+        std::cout<<"  2/4, Name: the name to identify you (not important, default: name)"<<std::endl;
+        strcpy(m_SupportInfo.Name, checkInput("name").c_str());
+        std::cout<<"  3/4, Email: the email address to identify you (mustn't be empty, default: email)"<<std::endl;
+        strcpy(m_SupportInfo.Email, checkInput("email").c_str());
+        std::cout<<"  4/4, RunCount: the redidual playing hours for the next support window (must be integer, default: -10000)"<<std::endl;
+        string run_count_input;
+        while(true){
+            run_count_input = checkInput("-10000");
+            if (std::regex_match(run_count_input, std::regex("-?\\d+"))) break;
+            else {
+                std::cout<<"Your input cannot interpret integer. Please input again."<<std::endl;
+            }
+        }
+        const int run_count_tmp = -1 * abs(std::stoi(run_count_input));
+        m_SupportInfo.RunCount = static_cast<uint32_t>((int32_t)run_count_tmp);
+    }
+
     printInfo(m_SupportInfo);
 
     const string hash=obtainMd5((const unsigned char &) m_SupportInfo, sizeof(m_SupportInfo));

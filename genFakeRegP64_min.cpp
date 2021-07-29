@@ -8,7 +8,6 @@
 #include <iostream>
 #include <time.h>
 #include <iomanip>
-# include <map>
 #include "./zlib/zlib.h"
 //#include <zlib.h>
 

@@ -29,17 +29,20 @@ The option `-lz` is for `zlib.h` and`-lssl -lcrypto` for `openssl/md5.h`.
 ./a.out
 ## for Windows Powershell, cmd
 # ./a.exe
+```
 
-## Select the Purpose
-
+### Select the Purpose
+```bash
 #>  What is the your purpose?: (1-2)
 #>          1. Make a fake registry data for Project 64 to avoid the Support Window.
 #>          2. Uncompress the registry data for Project 64 and obtain the saved information
 1
+```
 
-## Input MachineID or Registry Data
+### Input MachineID or Registry Data
 
-#>  Which is your input content?: (1-2)
+```bash
+#>  Which is your input content?: (1-2, default: 1)
 #>          1. Machine ID
 #>          2. Registry Data
 1
@@ -47,22 +50,30 @@ The option `-lz` is for `zlib.h` and`-lssl -lcrypto` for `openssl/md5.h`.
 #
 #>  Input MachineID
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+```
 
+for the case of 2. Regiistry Data
+```bash
 # 2
-## for the case of 2. Regiistry Data
 #
-#> Input Registry Data. After inputting, push Ctrl+D.
+#> Input Registry Data. After inputting, push Ctrl+D or Enter.
 #"user"=hex:d2,70,e1,64,e5,e3,cf,b2,af,ee,2b,7e,76,6e,66,36,7b,ca,8a,a0,4e,8f,\
 #  4c,24,c,81,88,2b,89,ab,9a,b0,e8,a2,5a,4b,6c,55,55,8a,d0,44,c7,c,ee,ce,30,\
 #  bb,80,45,c0,c0,43,46,48,cc,40,c6,cb,cc,43,cc,c3,42,40,42,cc,42,c6,c0,4c,4c,\
 #  4e,42,42,c6,46,c0,c3,c6,c2,a6,aa,ab,4a,b6,db
 #
-## -----------After inputting, push Cctrl+D-----------
+## -----------After inputting, push Ctrl+D or Enter-----------
+```
 
-#>  Will you use the default values for a fake registry data? (y/n)
+```bash
+#>  Will you change the values for a fake registry data? (y/n, default: n)
 #>          Code, Name, Email, RunCount
 y
+```
 
+### Results
+
+```bash
 #>-------------------
 #>  The following is a new registry file content.
 #>  Make new text file(`*.reg`) with it and import the file to the Registry Editor.

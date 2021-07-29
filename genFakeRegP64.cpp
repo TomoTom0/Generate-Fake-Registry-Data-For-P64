@@ -1,5 +1,5 @@
 // c++17
-// g++ test.cpp -lz -lssl -lcrypto -std=c++17 && ./a.out
+// g++ genFakeRegP64_min.cpp -lz -lssl -lcrypto -std=c++17 && ./a.out
 
 #include <stdio.h>
 #include <string.h>
@@ -8,7 +8,7 @@
 #include <iostream>
 #include <time.h>
 #include <iomanip>
-#include <regex>
+# include <map>
 #include "./zlib/zlib.h"
 //#include <zlib.h>
 
@@ -29,6 +29,13 @@ typedef struct
 
 // ##---------obtain-----------
 
+bool judgeHex(const char c_in){
+    const int c_p=int(c_in);
+    return (48<= c_p && c_p<=57) ||  // 0-9
+            (65<= c_p && c_p<=70) ||  // A-F
+            (97<= c_p && c_p<=102); // a-f
+}
+
 string checkInput(string defaultVal=""){
     string inputVal;
     //std::cin.ignore(INT_MAX, *"\n");
@@ -38,7 +45,6 @@ string checkInput(string defaultVal=""){
         return defaultVal;
     }
     else return inputVal;
-
 }
 
 std::tuple<SupportInfo, string> obtainInfo(vector<__uint8_t> InData){
@@ -55,10 +61,13 @@ std::tuple<SupportInfo, string> obtainInfo(vector<__uint8_t> InData){
         //return std::forward_as_tuple(Info_tmp, "");
     }
     const char * hash_saved_char = (const char *)(OutData.data() + sizeof(SupportInfo));
-    std::stringstream oss_tmp;
-    string hash_saved_tmp=string(reinterpret_cast<const char*>(hash_saved_char));
-    oss_tmp<<std::uppercase<<std::regex_replace(hash_saved_tmp, std::regex("[^(a-fA-F0-9)]*([a-fA-F0-9]+)[^(a-fA-F0-9)]*$"), "$1");
-    const string hash_saved=oss_tmp.str();
+    std::stringstream oss;
+    oss<<std::uppercase;
+    for (size_t ind=0; ind<32; ind++){
+        const char s=hash_saved_char[ind];
+        if (judgeHex(s)) oss<<s;
+    }
+    const string hash_saved=oss.str();
     return std::forward_as_tuple(* Info_star, hash_saved);
 }
 
@@ -81,33 +90,42 @@ string obtainInput(const std::map<string, vector<string>>& input_map, const stri
     return input_map_forFind[inputVal];
 }
 
+
+
 vector<__uint8_t> obtainRegistryData(){
-    std::cout<<"  Input Registry Data. After inputting, push Ctrl+D."<<std::endl;
+    std::cout<<"  Input Registry Data. After inputting, push Ctrl+D or Enter."<<std::endl;
     string input_line;
     vector<__uint8_t> registryData={};
     std::ostringstream oss;
     while(std::getline(std::cin, input_line)){
-        if(std::cin.eof()) break;
-        if (input_line.find("\"user\"=hex:")!=string::npos){
-            oss.str();
+        if(std::cin.eof() || (registryData.size()>0 && input_line.length()==0)) break;
+        const size_t userHexPos=input_line.find("\"user\"=hex:");
+        if (userHexPos!=string::npos){
+            oss.str("");
+            registryData={};
+            input_line=input_line.substr(userHexPos+1);
         }
         for (const auto s: input_line){
-            if (s!= * "\r" && s!= *"\n"){
+            if (s== * "\r" || s== *"\n"){
+                continue;
+            } else if (s==*"," || s==*"\\"){
+                const string str_tmp=oss.str();
+                if (str_tmp.length()>0){
+                    __uint8_t data_tmp= (__uint8_t) (std::stoi(str_tmp, nullptr, 16)^0xAA);
+                    registryData.push_back(data_tmp);
+                }
+                oss.str("");
+            } else if (judgeHex(s)){
                 oss<<s;
+            } else {
+                oss.str("");
             }
         }
     }
-    const string data_numbers=std::regex_replace(oss.str(), std::regex("[^(a-fA-F0-9)]*([a-fA-F0-9]+)[,\\\\s ]*"), "$1,");
-    string res_data=data_numbers;
-    while(true){
-        const size_t com_place=res_data.find(",");
-        if (com_place== string::npos) break;
-        string data_str=res_data.substr(0,com_place);
-        __uint8_t data_tmp= (__uint8_t) (std::stoi(data_str, nullptr, 16)^0xAA);
-        registryData.push_back(data_tmp);
-        res_data=res_data.substr(com_place+1);
+    for (auto s: registryData){
+        std::cout<<int(s)<<",";
     }
-
+    std::cout<<std::endl;
     return registryData;
 }
 
@@ -144,13 +162,8 @@ int printInfo(SupportInfo Info){
 // ##----------tmp--------------
 
 int tmp(){
-    string in_str;
-    std::cout<<1<<std::endl;
-    std::cin.ignore(INT_MAX, *"\n");
-    while (std::getline(std::cin, in_str)){
-        std::cout<<in_str.length()<<std::endl;
-    }
-    std::cout<<2<<std::endl;
+    string in_str="Aa";
+    std::cout<< int(in_str[0])<<std::endl;;
 }
 
 // ##---------uncompress-----------
@@ -201,9 +214,20 @@ int comp(){
     const bool isMachineID= selection == "MachineID";
     string MachineID_value;
     if (isMachineID){
-        std::cout<<"  Input MachineID"<<std::endl;
-        string inputVal=checkInput("AAAAAAAAAAAAAAAAAAAAAAAAA");
-        MachineID_value=std::regex_replace(inputVal, std::regex("^.*[^(a-fA-F0-9)]*([a-fA-F0-9]{32})[^(a-fA-F0-9)]*.*$"), "$1");
+        std::cout<<"  Input MachineID (default: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA)"<<std::endl;
+        std::ostringstream oss_id;
+        while(true){
+            const string inputVal=checkInput("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            for (auto s: inputVal){
+                if (judgeHex((s))) oss_id<<s;
+            }
+            MachineID_value=oss_id.str();
+            if (MachineID_value.length()==32) break;
+            else{
+                std::cout<<"Invalid MachineID. Please input again."<<std::endl;
+                continue;
+            }
+        }
     } else {
         vector<__uint8_t> registryData=obtainRegistryData();
         SupportInfo Info;
@@ -233,10 +257,20 @@ int comp(){
         string run_count_input;
         while(true){
             run_count_input = checkInput("-10000");
-            if (std::regex_match(run_count_input, std::regex("-?\\d+"))) break;
-            else {
-                std::cout<<"Your input cannot interpret integer. Please input again."<<std::endl;
+            bool isValid=true;
+            for (auto s: run_count_input){
+                const int c_p=int(s);
+                if (s==*"-" && run_count_input.rfind(s)==0){
+                    continue;
+                } else if (48<= c_p && c_p<=57) {
+                    continue;
+                } else {
+                    isValid=false;
+                    break;
+                }
             }
+            if (isValid) break;
+            std::cout<<"Your input cannot interpret integer. Please input again."<<std::endl;
         }
         const int run_count_tmp = -1 * abs(std::stoi(run_count_input));
         m_SupportInfo.RunCount = static_cast<uint32_t>((int32_t)run_count_tmp);
@@ -296,8 +330,6 @@ int comp(){
 // ##----------main------------
 
 int main(){
-    //std::ios::sync_with_stdio(false);
-    std::cin.tie(nullptr);
     std::cout<<"  What is the your purpose?: (1-2)\n"<<\
     "\t  1. Make a fake registry data for Project 64 to avoid the Support Window.\n"<<\
     "\t  2. Uncompress the registry data for Project 64 and obtain the saved information\n";

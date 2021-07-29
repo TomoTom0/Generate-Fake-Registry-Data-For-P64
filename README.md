@@ -52,11 +52,10 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 ## for the case of 2. Regiistry Data
 #
 #> Input Registry Data. After inputting, push Ctrl+D.
-# "user"=hex:d2,70,e1,64,e5,e3,cf,b2,af,ee,2b,7e,76,6e,66,36,7b,ca,8a,a0,4e,8f,\
-#  4c,24,0c,81,88,2b,13,0f,01,21,23,31,0f,0b,13,03,33,13,23,31,13,01,01,0f,1b,\
-#  03,21,23,13,13,8f,fa,66,68,7a,6e,d8,9e,2e,ba,4a,69,27,55,55,eb,5e,4f,97,26,\
-#  23,62,9e,89,fe,74,78,7a,62,66,68,6f,72,7e,6a,7e,76,72,7b,6a,7e,7a,67,66,78,\
-#  66,6e,7e,7b,7b,6f,7e,78,76,63,66,68,a6,aa,68,3c,b1,8c
+#"user"=hex:d2,70,e1,64,e5,e3,cf,b2,af,ee,2b,7e,76,6e,66,36,7b,ca,8a,a0,4e,8f,\
+#  4c,24,c,81,88,2b,89,ab,9a,b0,e8,a2,5a,4b,6c,55,55,8a,d0,44,c7,c,ee,ce,30,\
+#  bb,80,45,c0,c0,43,46,48,cc,40,c6,cb,cc,43,cc,c3,42,40,42,cc,42,c6,c0,4c,4c,\
+#  4e,42,42,c6,46,c0,c3,c6,c2,a6,aa,ab,4a,b6,db
 #
 ## -----------After inputting, push Cctrl+D-----------
 
@@ -80,6 +79,10 @@ y
 ## Import the Fake Registry Data
 
 Import the text file containing the fake registry data to the Registry Editor, then the support window won't appear until you play Project 64 for 10000 hours.
+
+## Paiza.io (Execute Online)
+
+If you only want to generate a fake registry data, you can finish it even online with genFakeRegP64_min.cpp -> Paiza.io:  https://paiza.io/projects/PvvYNgzj-8Kb8qbpctxzdw
 
 ## Reference
 
